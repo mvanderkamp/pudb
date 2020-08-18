@@ -28,6 +28,7 @@ THE SOFTWARE.
 
 import os
 import sys
+import traceback
 
 from pudb.py3compat import ConfigParser
 from pudb.lowlevel import lookup_module, get_breakpoint_invalid_reason
@@ -85,6 +86,7 @@ def load_config():
         if cparser.has_section(CONF_SECTION):
             conf_dict.update(dict(cparser.items(CONF_SECTION)))
     except Exception:
+        traceback.print_exc()
         pass
 
     conf_dict.setdefault("shell", "internal")
@@ -121,6 +123,7 @@ def load_config():
             else:
                 conf_dict[name] = True
         except Exception:
+            traceback.print_exc()
             pass
 
     normalize_bool_inplace("line_numbers")
@@ -148,6 +151,7 @@ def save_config(conf_dict):
         cparser.write(outf)
         outf.close()
     except Exception:
+        traceback.print_exc()
         pass
 
 
