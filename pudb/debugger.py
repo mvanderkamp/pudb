@@ -488,6 +488,37 @@ class Debugger(bdb.Bdb):
         # Implicitly runs in the namespace of __main__.
         self.run(statement)
 
+    def _runmodule(self, module_name):
+        # This is basically stolen from the pdb._runmodule from CPython 3.8
+        # and adapted to work also in Python 2
+        # https://github.com/python/cpython/blob/a1d3be4623c8ec7069bd34ccdce336be9cdeb644/Lib/pdb.py#L1530
+        import runpy
+
+        # here we unpack the module details manually, so that it works in PY2 as well
+        mod_details = runpy._get_module_details(module_name)
+        mod_spec = mod_details[1]
+        code = mod_details[2]
+
+        self.mainpyfile = self.canonic(code.co_filename)
+        import __main__
+        __main__.__dict__.clear()
+        __main__.__dict__.update({
+            "__name__": "__main__",
+            "__file__": self.mainpyfile,
+            "__spec__": mod_spec,
+            "__builtins__": __builtins__,
+        })
+
+        if PY3:
+            __main__.__dict__.update({
+                "__package__": mod_spec.parent,
+                "__loader__": mod_spec.loader,
+            })
+
+        self._wait_for_mainpyfile = True
+
+        self.run(code)
+
 # }}}
 
 
@@ -1552,24 +1583,11 @@ class DebuggerUI(FrameVarInfoKeeper):
                     [curframe.f_locals, curframe.f_globals],
                     curframe.f_locals)
 
-        def add_cmdline_content(s, attr):
-            s = s.rstrip("\n")
-
-            from pudb.ui_tools import SelectableText
-            self.cmdline_contents.append(
-                    urwid.AttrMap(SelectableText(s),
-                        attr, "focused "+attr))
-
-            # scroll to end of last entry
-            self.cmdline_list.set_focus_valign("bottom")
-            self.cmdline_list.set_focus(len(self.cmdline_contents) - 1,
-                    coming_from="above")
-
         def cmdline_tab_complete(w, size, key):
             try:
                 from jedi import Interpreter
             except ImportError:
-                add_cmdline_content(
+                self.add_cmdline_content(
                         "Tab completion requires jedi to be installed. ",
                         "command line error")
                 return
@@ -1577,7 +1595,7 @@ class DebuggerUI(FrameVarInfoKeeper):
             import jedi
             from distutils.version import LooseVersion
             if LooseVersion(jedi.__version__) < LooseVersion("0.16.0"):
-                add_cmdline_content(
+                self.add_cmdline_content(
                         "jedi 0.16.0 is required for Tab completion",
                         "command line error")
 
@@ -1593,7 +1611,7 @@ class DebuggerUI(FrameVarInfoKeeper):
                         [cmdline_get_namespace()]).complete()
             except Exception as e:
                 # Jedi sometimes produces errors. Ignore them.
-                add_cmdline_content(
+                self.add_cmdline_content(
                         "Could not tab complete (Jedi error: '%s')" % e,
                         "command line error")
                 return
@@ -1624,7 +1642,7 @@ class DebuggerUI(FrameVarInfoKeeper):
             if (
                     len(completed_chopped_text) == 0
                     and len(completions) > 1):
-                add_cmdline_content(
+                self.add_cmdline_content(
                         "   ".join(full_completions),
                         "command line output")
                 return
@@ -1644,7 +1662,7 @@ class DebuggerUI(FrameVarInfoKeeper):
                 # blank command -> refuse service
                 return
 
-            add_cmdline_content(">>> " + cmd, "command line input")
+            self.add_cmdline_content(">>> " + cmd, "command line input")
 
             if not self.cmdline_history or cmd != self.cmdline_history[-1]:
                 self.cmdline_history.append(cmd)
@@ -1684,12 +1702,13 @@ class DebuggerUI(FrameVarInfoKeeper):
                     tb_lines.insert(0, "Traceback (most recent call last):\n")
                 tb_lines[len(tb_lines):] = traceback.format_exception_only(tp, val)
 
-                add_cmdline_content("".join(tb_lines), "command line error")
+                self.add_cmdline_content("".join(tb_lines), "command line error")
             else:
                 self.cmdline_edit.set_edit_text("")
             finally:
                 if sys.stdout.getvalue():
-                    add_cmdline_content(sys.stdout.getvalue(), "command line output")
+                    self.add_cmdline_content(sys.stdout.getvalue(),
+                                             "command line output")
 
                 sys.stdin = prev_sys_stdin
                 sys.stdout = prev_sys_stdout
@@ -2042,6 +2061,21 @@ class DebuggerUI(FrameVarInfoKeeper):
     # }}}
 
     # {{{ UI helpers
+    def add_cmdline_content(self, s, attr):
+        s = s.rstrip("\n")
+
+        from pudb.ui_tools import SelectableText
+        self.cmdline_contents.append(
+                urwid.AttrMap(SelectableText(s), attr, "focused "+attr))
+
+        # scroll to end of last entry
+        self.cmdline_list.set_focus_valign("bottom")
+        self.cmdline_list.set_focus(len(self.cmdline_contents) - 1,
+                coming_from="above")
+
+        # Force the commandline to be visible
+        self.set_cmdline_state(True)
+
     def reset_cmdline_size(self):
         self.lhs_col.item_types[-1] = "weight", \
                 self.cmdline_weight if self.cmdline_on else 0
@@ -2582,7 +2616,10 @@ class DebuggerUI(FrameVarInfoKeeper):
                 try:
                     class_name = frame.f_locals["self"].__class__.__name__
                 except Exception:
-                    pass
+                    from pudb.lowlevel import ui_log
+                    message = 'Failed to determine class name'
+                    ui_log.exception(message)
+                    class_name = '!! %s !!' % message
 
             return StackFrame(frame is self.debugger.curframe,
                     code.co_name, class_name,
