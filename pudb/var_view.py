@@ -381,8 +381,8 @@ class ValueWalker:
         :param str id_path:
         """
         for count, key in enumerate(value):
-            if ((count > 0 and count % 10 == 0) and
-                    self.add_continuation_item(parent, id_path, count)):
+            if ((count > 0 and count % 10 == 0)
+                    and self.add_continuation_item(parent, id_path, count)):
                 return True
 
             try:
@@ -409,8 +409,8 @@ class ValueWalker:
         :param str id_path:
         """
         for count, entry in enumerate(value):
-            if ((count > 0 and count % 10 == 0) and
-                    self.add_continuation_item(parent, id_path, count)):
+            if ((count > 0 and count % 10 == 0)
+                    and self.add_continuation_item(parent, id_path, count)):
                 return True
 
             self.walk_value(parent, repr(count), entry,
@@ -421,7 +421,6 @@ class ValueWalker:
 
         return True
 
-
     def walk_collection(self, parent, label, value, id_path=None):
         """
         :param VariableWidget or None parent
@@ -430,8 +429,8 @@ class ValueWalker:
         :param str id_path:
         """
         for count, entry in enumerate(value):
-            if ((count > 0 and count % 10 == 0) and
-                    self.add_continuation_item(parent, id_path, count)):
+            if ((count > 0 and count % 10 == 0)
+                    and self.add_continuation_item(parent, id_path, count)):
                 return True
 
             self.walk_value(parent, None, entry,
