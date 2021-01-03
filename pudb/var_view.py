@@ -57,6 +57,7 @@ from pudb.ui_tools import text_width
 
 from abc import ABC
 
+
 class PudbCollection(ABC):
     @classmethod
     def __subclasshook__(cls, c):
@@ -67,6 +68,7 @@ class PudbCollection(ABC):
             ])
         return NotImplemented
 
+
 class PudbSequence(ABC):
     @classmethod
     def __subclasshook__(cls, c):
@@ -76,6 +78,7 @@ class PudbSequence(ABC):
                 any("__iter__" in b.__dict__ for b in c.__mro__),
             ])
         return NotImplemented
+
 
 class PudbMapping(ABC):
     @classmethod
@@ -410,7 +413,7 @@ class ValueWalker:
         return False
 
     def walk_mapping(self, parent: VariableWidget, label: str,
-                     value: PudbMapping, id_path: str=None):
+                     value: PudbMapping, id_path: str = None):
         count = 0
         for count, key in enumerate(value):
             if ((count > 0 and count % 10 == 0)
@@ -434,7 +437,7 @@ class ValueWalker:
         return True
 
     def walk_sequence(self, parent: VariableWidget, label: str,
-                      value: PudbSequence, id_path: str=None):
+                      value: PudbSequence, id_path: str = None):
         count = 0
         for count, entry in enumerate(value):
             if ((count > 0 and count % 10 == 0)
@@ -450,7 +453,7 @@ class ValueWalker:
         return True
 
     def walk_collection(self, parent: VariableWidget, label: str,
-                        value: PudbCollection, id_path: str=None):
+                        value: PudbCollection, id_path: str = None):
         count = 0
         for count, entry in enumerate(value):
             if ((count > 0 and count % 10 == 0)
