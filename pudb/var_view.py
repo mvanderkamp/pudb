@@ -404,13 +404,13 @@ class ValueWalker:
     def __init__(self, frame_var_info):
         self.frame_var_info = frame_var_info
 
-    def add_continuation_item(self, parent: VariableWidget, id_path: str,
-                              count: int) -> bool:
+    def add_continuation_item(self, parent, id_path, count):
         """
-        :returns: True if a continuation item ("...") was added, else False.
-        If a continuation item was added, no further entries in the container
-        should be added. If no continuation item was added, continue adding
-        entries from the container.
+        :param VariableWidget or None parent
+        :param str id_path:
+        :param int count:
+        :returns: True if a continuation item ("...") was added, else False
+        :rtype: bool
         """
         cont_id_path = "%s.cont-%d" % (id_path, count)
         if not self.frame_var_info.get_inspect_info(
@@ -419,8 +419,13 @@ class ValueWalker:
             return True
         return False
 
-    def walk_mapping(self, parent: VariableWidget, label: str,
-                     value: PudbMapping, id_path: str = None):
+    def walk_mapping(self, parent, label, value, id_path=None):
+        """
+        :param VariableWidget or None parent
+        :param str label:
+        :param PudbMapping value:
+        :param str id_path:
+        """
         is_empty = True
         for count, key in enumerate(value):
             is_empty = False
@@ -444,8 +449,13 @@ class ValueWalker:
 
         return True
 
-    def walk_sequence(self, parent: VariableWidget, label: str,
-                      value: PudbSequence, id_path: str = None):
+    def walk_sequence(self, parent, label, value, id_path=None):
+        """
+        :param VariableWidget or None parent
+        :param str label:
+        :param PudbSequence value:
+        :param str id_path:
+        """
         is_empty = True
         for count, entry in enumerate(value):
             is_empty = False
@@ -461,8 +471,13 @@ class ValueWalker:
 
         return True
 
-    def walk_collection(self, parent: VariableWidget, label: str,
-                        value: PudbCollection, id_path: str = None):
+    def walk_collection(self, parent, label, value, id_path=None):
+        """
+        :param VariableWidget or None parent
+        :param str label:
+        :param PudbCollection value:
+        :param str id_path:
+        """
         is_empty = True
         for count, entry in enumerate(value):
             is_empty = False
