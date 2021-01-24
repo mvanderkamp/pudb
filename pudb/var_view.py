@@ -58,6 +58,8 @@ from pudb.ui_tools import text_width
 # {{{ container metaclasses
 
 class PudbCollection(_PudbCollection):
+    SURROUNDS = ("{", "}")
+
     @classmethod
     def __subclasshook__(cls, c):
         if cls is PudbCollection:
@@ -80,8 +82,16 @@ class PudbCollection(_PudbCollection):
         for count, entry in enumerate(collection):
             yield None, entry, "[%d]" % count
 
+    @classmethod
+    def previews(cls, collection):
+        assert isinstance(collection, cls)
+        for entry in collection:
+            yield str(entry)
+
 
 class PudbSequence(_PudbSequence):
+    SURROUNDS = ("[", "]")
+
     @classmethod
     def __subclasshook__(cls, c):
         if cls is PudbSequence:
@@ -104,8 +114,16 @@ class PudbSequence(_PudbSequence):
         for count, entry in enumerate(sequence):
             yield str(count), entry, "[%d]" % count
 
+    @classmethod
+    def previews(cls, sequence):
+        assert isinstance(sequence, cls)
+        for entry in sequence:
+            yield str(entry)
+
 
 class PudbMapping(_PudbMapping):
+    SURROUNDS = ("{", "}")
+
     @classmethod
     def __subclasshook__(cls, c):
         if cls is PudbMapping:
@@ -135,6 +153,17 @@ class PudbMapping(_PudbMapping):
                              "not behave like one." % mapping)
             else:
                 yield repr(key), entry, "[%r]" % key
+
+    @classmethod
+    def previews(cls, mapping):
+        assert isinstance(mapping, cls)
+        for key in mapping.keys():
+            try:
+                entry = mapping[key]
+            except TypeError:
+                break
+            else:
+                yield "{k}: {v}".format(k=key, v=entry)
 
 
 # Order is important here- A mapping without keys could be viewed as a
@@ -523,27 +552,25 @@ class ValueWalker:
         Generates a short preview string made up of the first NUM_PREVIEW_ITEMS
         items in the container.
         """
-        # Use this counter along with zip() to limit comprehensions to 3 items.
+        try:
+            container_cls = next(cls for cls in CONTAINER_CLASSES
+                                 if isinstance(container, cls))
+        except StopIteration:
+            # Not recognized as a container
+            return ""
+
+        # Use this counter along with zip() to limit comprehension to 3 items.
         counter = range(cls.NUM_PREVIEW_ITEMS)
 
-        # Order is important here- A mapping without keys could be viewed as a
-        # sequence, and they're both containers.
-        if isinstance(container, PudbMapping):
-            items = ["{k}: {v}".format(k=key, v=container[key])
-                     for _, key in zip(counter, container.keys())]
-            surrounds = ("{", "}")
-        elif isinstance(container, PudbSequence):
-            items = [str(entry) for _, entry in zip(counter, container)]
-            surrounds = ("[", "]")
-        elif isinstance(container, PudbCollection):
-            items = [str(entry) for _, entry in zip(counter, container)]
-            surrounds = ("{", "}")
+        items = [cls._preview_entry(preview)
+                 for _, preview
+                 in zip(counter, container_cls.previews(container))]
 
         preview = "{open}{items}{cont}{close}".format(
             items=", ".join(items),
             cont=", ..." if len(items) == cls.NUM_PREVIEW_ITEMS else "",
-            open=surrounds[0],
-            close=surrounds[1],
+            open=container_cls.SURROUNDS[0],
+            close=container_cls.SURROUNDS[1],
         )
 
         return preview
