@@ -13,39 +13,16 @@ if PY3:
         exec(compile(open(fname).read(), fname, "exec"), globs, locs or globs)
 
     # {{{ container metaclasses
-
     from abc import ABC
 
-    class PudbCollection(ABC):
-        @classmethod
-        def __subclasshook__(cls, c):
-            if cls is PudbCollection:
-                return all([
-                    any("__contains__" in b.__dict__ for b in c.__mro__),
-                    any("__iter__" in b.__dict__ for b in c.__mro__),
-                ])
-            return NotImplemented
+    class _PudbCollection(ABC):
+        pass
 
-    class PudbSequence(ABC):
-        @classmethod
-        def __subclasshook__(cls, c):
-            if cls is PudbSequence:
-                return all([
-                    any("__getitem__" in b.__dict__ for b in c.__mro__),
-                    any("__iter__" in b.__dict__ for b in c.__mro__),
-                ])
-            return NotImplemented
+    class _PudbSequence(ABC):
+        pass
 
-    class PudbMapping(ABC):
-        @classmethod
-        def __subclasshook__(cls, c):
-            if cls is PudbMapping:
-                return all([
-                    any("__getitem__" in b.__dict__ for b in c.__mro__),
-                    any("__iter__" in b.__dict__ for b in c.__mro__),
-                    any("keys" in b.__dict__ for b in c.__mro__),
-                ])
-            return NotImplemented
+    class _PudbMapping(ABC):
+        pass
     # }}}
 
 else:
@@ -57,54 +34,16 @@ else:
     execfile = execfile
 
     # {{{ container metaclasses
-
     from abc import ABCMeta
 
-    class PudbCollection:
+    class _PudbCollection:
         __metaclass__ = ABCMeta
 
-        @classmethod
-        def __subclasshook__(cls, c):
-            if cls is PudbCollection:
-                try:
-                    return all([
-                        any("__contains__" in b.__dict__ for b in c.__mro__),
-                        any("__iter__" in b.__dict__ for b in c.__mro__),
-                    ])
-                except AttributeError:
-                    pass
-            return NotImplemented
-
-    class PudbSequence:
+    class _PudbSequence:
         __metaclass__ = ABCMeta
 
-        @classmethod
-        def __subclasshook__(cls, c):
-            if cls is PudbSequence:
-                try:
-                    return all([
-                        any("__getitem__" in b.__dict__ for b in c.__mro__),
-                        any("__iter__" in b.__dict__ for b in c.__mro__),
-                    ])
-                except AttributeError:
-                    pass
-            return NotImplemented
-
-    class PudbMapping:
+    class _PudbMapping:
         __metaclass__ = ABCMeta
-
-        @classmethod
-        def __subclasshook__(cls, c):
-            if cls is PudbMapping:
-                try:
-                    return all([
-                        any("__getitem__" in b.__dict__ for b in c.__mro__),
-                        any("__iter__" in b.__dict__ for b in c.__mro__),
-                        any("keys" in b.__dict__ for b in c.__mro__),
-                    ])
-                except AttributeError:
-                    pass
-            return NotImplemented
     # }}}
 
 try:
