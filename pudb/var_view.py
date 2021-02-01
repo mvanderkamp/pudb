@@ -443,6 +443,10 @@ def type_stringifier(value):
     return text_type(type(value).__name__)
 
 
+def id_stringifier(obj):
+    return '{id:#x}'.format(id=id(obj))
+
+
 def get_stringifier(iinfo):
     """Return a function that turns an object into a Unicode text object."""
 
@@ -460,6 +464,9 @@ def get_stringifier(iinfo):
             return lambda value: (
                     value.decode("utf-8") if isinstance(value, bytes)
                     else text_type(value))
+        return str
+    elif iinfo.display_type == "id":
+        return id_stringifier
     else:
         try:
             if not custom_stringifier_dict:  # Only execfile once
