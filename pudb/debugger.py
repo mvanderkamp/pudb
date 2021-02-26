@@ -2532,18 +2532,18 @@ class DebuggerUI(FrameVarInfoKeeper):
             self.quit_event_loop = False
 
             while not self.quit_event_loop:
-                canvas = toplevel.render(self.size, focus=True)
-                self.screen.draw_screen(self.size, canvas)
-                keys = self.screen.get_input()
+                try:
+                    canvas = toplevel.render(self.size, focus=True)
+                    self.screen.draw_screen(self.size, canvas)
+                    keys = self.screen.get_input()
 
-                for k in keys:
-                    if k == "window resize":
-                        self.size = self.screen.get_cols_rows()
-                    else:
-                        try:
-                            toplevel.keypress(self.size, k)
-                        except Exception:
-                            self.show_internal_exc_dlg(sys.exc_info())
+                    for k in keys:
+                        if k == "window resize":
+                            self.size = self.screen.get_cols_rows()
+                        else:
+                                toplevel.keypress(self.size, k)
+                except Exception:
+                    self.show_internal_exc_dlg(sys.exc_info())
 
             return self.quit_event_loop
         finally:
