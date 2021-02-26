@@ -280,9 +280,11 @@ class VariableWidget(urwid.FlowWidget):
     def selectable(self):
         return True
 
-    SIZE_LIMIT = 20
-
-    def _get_text(self, size):
+    def _get_text_lines(self, size):
+        """
+        :return: list of string lines, wrapped to fit in the available space.
+        :rtype: list(str)
+        """
         maxcol = size[0] - len(self.prefix)  # self.prefix is a padding
         var_label = self.var_label or ''
         value_str = self.value_str or ''
@@ -294,15 +296,13 @@ class VariableWidget(urwid.FlowWidget):
         fulllines, rest = divmod(text_width(alltext) - maxcol, maxcol - 2)
         restlines = [alltext[(maxcol - 2)*i + maxcol:(maxcol - 2)*i + 2*maxcol - 2]
             for i in xrange(fulllines + bool(rest))]
-        return [firstline] + ["  " + self.prefix + i for i in restlines]
+        return [firstline] + [self.prefix + "  " + i for i in restlines]
 
     def rows(self, size, focus=False):
         if self.wrap:
-            return len(self._get_text(size))
+            return len(self._get_text_lines(size))
 
-        if (self.value_str is not None
-                and self.var_label is not None
-                and len(self.prefix) + text_width(self.var_label) > self.SIZE_LIMIT):
+        if len(self._get_text_lines(size)) > 1:
             return 2
         else:
             return 1
@@ -319,11 +319,11 @@ class VariableWidget(urwid.FlowWidget):
         var_label = self.var_label or ''
 
         if self.wrap:
-            text = self._get_text(size)
+            textlines = self._get_text_lines(size)
 
             extralabel_full, extralabel_rem = divmod(
                     text_width(var_label[maxcol:]), maxcol)
-            totallen = sum([text_width(i) for i in text])
+            totallen = sum([text_width(i) for i in textlines])
             labellen = (
                     len(self.prefix)  # Padding of first line
 
@@ -343,20 +343,20 @@ class VariableWidget(urwid.FlowWidget):
             attr = [rle_subseg(_attr, i*maxcol, (i + 1)*maxcol)
                 for i in xrange(fullcols + bool(rem))]
 
-            return make_canvas(text, attr, maxcol, apfx+"value")
+            return make_canvas(textlines, attr, maxcol, apfx+"value")
 
         lprefix = len(self.prefix)
 
         if self.value_str is not None:
             if self.var_label is not None:
-                if len(self.prefix) + text_width(self.var_label) > self.SIZE_LIMIT:
+                if len(self._get_text_lines(size)) > 1:
                     # label too long? generate separate value line
-                    text = [self.prefix + self.var_label,
+                    text = [self.prefix + self.var_label + ":",
                             self.prefix+"  " + self.value_str]
 
                     attr = [
-                        [(apfx+"label", lprefix+text_width(self.var_label))],
-                        [(apfx+"value", lprefix+2+text_width(self.value_str))]
+                        [(apfx+"label", text_width(text[0]))],
+                        [(apfx+"value", text_width(text[1]))],
                         ]
                 else:
                     text = [self.prefix + self.var_label + ": " + self.value_str]
