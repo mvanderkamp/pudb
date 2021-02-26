@@ -1141,7 +1141,11 @@ class DebuggerUI(FrameVarInfoKeeper):
                 _, pos = self.bp_list._w.get_focus()
                 bp = bp_list[pos]
                 if bp_source_identifier == bp.file and bp.line-1 < len(self.source):
-                    self.source[bp.line-1].set_breakpoint(False)
+                    try:
+                        self.source[bp.line-1].set_breakpoint(False)
+                    except IndexError:
+                        ui_log.exception('Failed to delete breakpoint %r' % bp)
+                        return
 
                 err = self.debugger.clear_break(bp.file, bp.line)
                 if err:
@@ -1158,7 +1162,12 @@ class DebuggerUI(FrameVarInfoKeeper):
             bp = self._get_bp_list()[pos]
             bp.enabled = not bp.enabled
 
-            sline = self.source[bp.line-1]
+            try:
+                sline = self.source[bp.line-1]
+            except IndexError:
+                ui_log.exception('Failed to toggle breakpoint %r' % bp)
+                return
+
             sline.set_breakpoint(bp.enabled)
 
             self.update_breakpoints()
@@ -1226,7 +1235,11 @@ class DebuggerUI(FrameVarInfoKeeper):
                         "(perhaps this is generated code)")
 
                 if bp_source_identifier == bp.file:
-                    self.source[bp.line-1].set_breakpoint(False)
+                    try:
+                        self.source[bp.line-1].set_breakpoint(False)
+                    except IndexError:
+                        ui_log.exception('Failed to delete breakpoint %r' % bp)
+                        return
 
                 err = self.debugger.clear_break(bp.file, bp.line)
                 if err:
