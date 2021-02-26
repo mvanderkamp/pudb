@@ -55,7 +55,7 @@ from pudb.ui_tools import text_width
 # }}}
 
 
-# {{{ container metaclasses
+# {{{ abstract base classes for containers
 
 class PudbCollection(_PudbCollection):
     SURROUNDS = ("{", "}")
@@ -75,7 +75,7 @@ class PudbCollection(_PudbCollection):
     @classmethod
     def entries(cls, collection, label):
         """
-        :yield: (label, entry, id_path_ext) tuples for each entry in the
+        :yield: ``(label, entry, id_path_ext)`` tuples for each entry in the
         collection.
         """
         assert isinstance(collection, cls)
@@ -114,7 +114,7 @@ class PudbSequence(_PudbSequence):
     @classmethod
     def entries(cls, sequence, label):
         """
-        :yield: (label, entry, id_path_ext) tuples for each entry in the
+        :yield: ``(label, entry, id_path_ext)`` tuples for each entry in the
         sequence.
         """
         assert isinstance(sequence, cls)
@@ -154,7 +154,7 @@ class PudbMapping(_PudbMapping):
     @classmethod
     def entries(cls, mapping, label):
         """
-        :yield: (label, entry, id_path_ext) tuples for each entry in the
+        :yield: ``(label, entry, id_path_ext)`` tuples for each entry in the
         mapping.
         """
         assert isinstance(mapping, cls)
