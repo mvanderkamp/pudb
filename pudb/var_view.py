@@ -152,6 +152,13 @@ class PudbMapping(_PudbMapping):
         return NotImplemented
 
     @classmethod
+    def _safe_key_repr(cls, key):
+        try:
+            return repr(key)
+        except Exception:
+            return "!! repr error on key with id: {:#x} !!".format(id(key))
+
+    @classmethod
     def entries(cls, mapping, label):
         """
         :yield: ``(label, entry, id_path_ext)`` tuples for each entry in the
@@ -160,7 +167,8 @@ class PudbMapping(_PudbMapping):
         assert isinstance(mapping, cls)
         try:
             for key in mapping.keys():
-                yield repr(key), mapping[key], "[{k!r}]".format(k=key)
+                key_repr = cls._safe_key_repr(key)
+                yield (key_repr, mapping[key], "[{}]".format(key_repr))
         except (AttributeError, TypeError):
             ui_log.error("Object '%r' appears to be a mapping, but does "
                          "not behave like one." % label)
