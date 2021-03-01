@@ -533,7 +533,7 @@ class ValueWalker:
 
         is_empty = True
         for count, (entry_label, entry, id_path_ext) in enumerate(
-                container_cls.entries(value)):
+                container_cls.entries(value, label)):
             is_empty = False
             if count > 0 and count % 10 == 0:
                 try:
