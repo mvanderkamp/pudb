@@ -68,7 +68,7 @@ class PudbCollection(_PudbCollection):
                     any("__contains__" in b.__dict__ for b in c.__mro__),
                     any("__iter__" in b.__dict__ for b in c.__mro__),
                 ])
-            except Exception:
+            except (AttributeError, TypeError):
                 pass
         return NotImplemented
 
@@ -82,7 +82,7 @@ class PudbCollection(_PudbCollection):
         try:
             for count, entry in enumerate(collection):
                 yield None, entry, "[%d]" % count
-        except TypeError:
+        except (AttributeError, TypeError):
             ui_log.error("Object '%r' appears to be a collection, but does "
                          "not behave like one." % collection)
 
@@ -92,7 +92,7 @@ class PudbCollection(_PudbCollection):
         try:
             for entry in collection:
                 yield str(entry)
-        except TypeError:
+        except (AttributeError, TypeError):
             pass
 
 
@@ -107,7 +107,7 @@ class PudbSequence(_PudbSequence):
                     any("__getitem__" in b.__dict__ for b in c.__mro__),
                     any("__iter__" in b.__dict__ for b in c.__mro__),
                 ])
-            except TypeError:
+            except (AttributeError, TypeError):
                 pass
         return NotImplemented
 
@@ -121,7 +121,7 @@ class PudbSequence(_PudbSequence):
         try:
             for count, entry in enumerate(sequence):
                 yield str(count), entry, "[%d]" % count
-        except TypeError:
+        except (AttributeError, TypeError):
             ui_log.error("Object '%r' appears to be a sequence, but does "
                          "not behave like one." % sequence)
 
@@ -131,7 +131,7 @@ class PudbSequence(_PudbSequence):
         try:
             for entry in sequence:
                 yield str(entry)
-        except TypeError:
+        except (AttributeError, TypeError):
             pass
 
 
@@ -147,7 +147,7 @@ class PudbMapping(_PudbMapping):
                     any("__iter__" in b.__dict__ for b in c.__mro__),
                     any("keys" in b.__dict__ for b in c.__mro__),
                 ])
-            except TypeError:
+            except (AttributeError, TypeError):
                 pass
         return NotImplemented
 
@@ -161,7 +161,7 @@ class PudbMapping(_PudbMapping):
         try:
             for key in mapping.keys():
                 yield repr(key), mapping[key], "[%r]" % key
-        except TypeError:
+        except (AttributeError, TypeError):
             ui_log.error("Object '%r' appears to be a mapping, but does "
                          "not behave like one." % mapping)
 
@@ -171,7 +171,7 @@ class PudbMapping(_PudbMapping):
         try:
             for key in mapping.keys():
                 yield "{k}: {v}".format(k=key, v=mapping[key])
-        except TypeError:
+        except (AttributeError, TypeError):
             pass
 
 
