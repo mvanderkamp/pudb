@@ -499,9 +499,9 @@ class ValueWalker:
         :param int count:
         :param int length:
         :returns: True if a continuation item ("[...]") was added, else False.
-        If a continuation item was added, no further entries in the container
-        should be added. If no continuation item was added, continue adding
-        entries from the container.
+            If a continuation item was added, no further entries in the
+            container should be added. If no continuation item was added,
+            continue adding entries from the container.
         :rtype: bool
         """
         cont_id_path = "%s.cont-%d" % (id_path, count)
