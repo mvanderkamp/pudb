@@ -73,7 +73,7 @@ class PudbCollection(_PudbCollection):
         return NotImplemented
 
     @classmethod
-    def entries(cls, collection):
+    def entries(cls, collection, label):
         """
         :yield: (label, entry, id_path_ext) tuples for each entry in the
         collection.
@@ -84,7 +84,7 @@ class PudbCollection(_PudbCollection):
                 yield None, entry, "[%d]" % count
         except (AttributeError, TypeError):
             ui_log.error("Object '%r' appears to be a collection, but does "
-                         "not behave like one." % collection)
+                         "not behave like one." % label)
 
     @classmethod
     def previews(cls, collection):
@@ -112,7 +112,7 @@ class PudbSequence(_PudbSequence):
         return NotImplemented
 
     @classmethod
-    def entries(cls, sequence):
+    def entries(cls, sequence, label):
         """
         :yield: (label, entry, id_path_ext) tuples for each entry in the
         sequence.
@@ -123,7 +123,7 @@ class PudbSequence(_PudbSequence):
                 yield str(count), entry, "[%d]" % count
         except (AttributeError, TypeError):
             ui_log.error("Object '%r' appears to be a sequence, but does "
-                         "not behave like one." % sequence)
+                         "not behave like one." % label)
 
     @classmethod
     def previews(cls, sequence):
@@ -152,7 +152,7 @@ class PudbMapping(_PudbMapping):
         return NotImplemented
 
     @classmethod
-    def entries(cls, mapping):
+    def entries(cls, mapping, label):
         """
         :yield: (label, entry, id_path_ext) tuples for each entry in the
         mapping.
@@ -160,10 +160,10 @@ class PudbMapping(_PudbMapping):
         assert isinstance(mapping, cls)
         try:
             for key in mapping.keys():
-                yield repr(key), mapping[key], "[%r]" % key
+                yield repr(key), mapping[key], "[{k!r}]".format(k=key)
         except (AttributeError, TypeError):
             ui_log.error("Object '%r' appears to be a mapping, but does "
-                         "not behave like one." % mapping)
+                         "not behave like one." % label)
 
     @classmethod
     def previews(cls, mapping):
