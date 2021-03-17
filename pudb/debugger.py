@@ -1593,6 +1593,11 @@ class DebuggerUI(FrameVarInfoKeeper):
         self.source_sigwrap.listen("u", move_stack_up)
         self.source_sigwrap.listen("d", move_stack_down)
 
+        # Special horizontal scroll handling for ListBoxes
+        # (normal left/right won't cut it)
+        self.source_sigwrap.listen("h", scroll_left)
+        self.source_sigwrap.listen("l", scroll_right)
+
         add_vi_nav_keys(self.source_sigwrap)
         add_help_keys(self.source_sigwrap, helpmain)
 
