@@ -39,9 +39,22 @@ from pudb.py3compat import _PudbCollection, _PudbMapping, _PudbSequence
 
 try:
     import numpy
-    HAVE_NUMPY = 1
+    NUMPY_NUMBER = numpy.number
+    NUMPY_ARRAY = numpy.ndarray
 except ImportError:
-    HAVE_NUMPY = 0
+    NUMPY_NUMBER = ()
+    NUMPY_ARRAY = ()
+
+try:
+    import pandas
+    PANDAS_TYPES = (
+        pandas.Series,
+        pandas.DataFrame,
+        pandas.Index,
+        pandas.Panel,
+    )
+except ImportError:
+    PANDAS_TYPES = ()
 
 from pudb.py3compat import PY3, execfile, raw_input, xrange, \
         integer_types, string_types, text_type
@@ -179,6 +192,7 @@ CONTAINER_CLASSES = (
 # }}}
 
 # {{{ data
+
 
 class FrameVarInfo(object):
     def __init__(self):
@@ -398,16 +412,31 @@ class VariableWidget(urwid.FlowWidget):
 # }}}
 
 
+# {{{ stringifiers
 custom_stringifier_dict = {}
 
+BASIC_TYPES = []
+BASIC_TYPES.append(type(None))
+BASIC_TYPES.extend(integer_types)
+BASIC_TYPES.extend(string_types)
+BASIC_TYPES.extend((float, complex))
+BASIC_TYPES = tuple(BASIC_TYPES)
 
-def type_stringifier(value):
-    if HAVE_NUMPY and isinstance(value, numpy.ndarray):
+
+def default_stringifier(value):
+    if isinstance(value, BASIC_TYPES):
+        return text_type(repr(value))
+
+    if isinstance(value, NUMPY_ARRAY):
         return text_type("%s(%s) %s") % (
                 type(value).__name__, value.dtype, value.shape)
 
-    elif HAVE_NUMPY and isinstance(value, numpy.number):
+    elif isinstance(value, NUMPY_NUMBER):
         return text_type("%s (%s)" % (value, value.dtype))
+
+    elif isinstance(value, PANDAS_TYPES):
+        return text_type("%s %s") % (
+            type(value).__name__, value.shape)
 
     elif isinstance(value, STR_SAFE_TYPES):
         try:
@@ -436,6 +465,10 @@ def type_stringifier(value):
     return text_type(type(value).__name__)
 
 
+def type_stringifier(obj):
+    return text_type(type(obj).__name__)
+
+
 def id_stringifier(obj):
     return "{id:#x}".format(id=id(obj))
 
@@ -444,27 +477,36 @@ def error_stringifier(_):
     return "ERROR: Invalid custom stringifier file."
 
 
-def get_stringifier(iinfo):
-    """Return a function that turns an object into a Unicode text object."""
+def str_stringifier(value):
+    if PY3:
+        return str(value)
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    return text_type(value)
 
-    if iinfo.display_type == "type":
-        return type_stringifier
-    elif iinfo.display_type == "repr":
-        if PY3:
-            return repr
-        else:
-            return lambda value: repr(value).decode("utf-8")
-    elif iinfo.display_type == "str":
-        if PY3:
-            return str
-        else:
-            return lambda value: (
-                    value.decode("utf-8") if isinstance(value, bytes)
-                    else text_type(value))
-        return str
-    elif iinfo.display_type == "id":
-        return id_stringifier
-    else:
+
+def repr_stringifier(value):
+    if PY3:
+        return repr(value)
+    return repr(value).decode("utf-8")
+
+
+STRINGIFIERS = {
+    "default": default_stringifier,
+    "type": type_stringifier,
+    "repr": repr_stringifier,
+    "str": str_stringifier,
+    "id": id_stringifier,
+}
+
+
+def get_stringifier(iinfo):
+    """
+    :return: a function that turns an object into a Unicode text object.
+    """
+    try:
+        return STRINGIFIERS[iinfo.display_type]
+    except KeyError:
         try:
             if not custom_stringifier_dict:  # Only execfile once
                 from os.path import expanduser
@@ -474,29 +516,22 @@ def get_stringifier(iinfo):
             return error_stringifier
         else:
             if "pudb_stringifier" not in custom_stringifier_dict:
-                print("%s does not contain a function named pudb_stringifier at "
-                      "the module level." % iinfo.display_type)
-                raw_input("Hit enter:")
+                ui_log.error("{path} does not contain a function named "
+                             "pudb_stringifier at the module level.".format(
+                                 path=iinfo.display_type))
                 return lambda value: text_type(
                         "ERROR: Invalid custom stringifier file: "
-                        "pudb_stringifer not defined.")
+                        "pudb_stringifier not defined.")
             else:
                 return (lambda value:
                     text_type(custom_stringifier_dict["pudb_stringifier"](value)))
+
+# }}}
 
 
 # {{{ tree walking
 
 class ValueWalker:
-    BASIC_TYPES = []
-    BASIC_TYPES.append(type(None))
-    BASIC_TYPES.extend(integer_types)
-    BASIC_TYPES.extend(string_types)
-    BASIC_TYPES.extend((float, complex))
-    BASIC_TYPES = tuple(BASIC_TYPES)
-
-    NUM_PREVIEW_ITEMS = 3
-    MAX_PREVIEW_ITEM_LEN = 16
 
     EMPTY_LABEL = "<empty>"
     CONTINUATION_LABEL = "[...]"
@@ -601,17 +636,14 @@ class ValueWalker:
         assert isinstance(id_path, str)
         iinfo = self.frame_var_info.get_inspect_info(id_path, read_only=True)
 
-        if isinstance(value, self.BASIC_TYPES):
-            displayed_value = repr(value)
-        else:
-            try:
-                displayed_value = get_stringifier(iinfo)(value)
-            except Exception:
-                # Unfortunately, anything can happen when calling str() or
-                # repr() on a random object.
-                displayed_value = type_stringifier(value) \
-                                + " (!! %s error !!)" % iinfo.display_type
-                ui_log.exception('stringifier failed')
+        try:
+            displayed_value = get_stringifier(iinfo)(value)
+        except Exception:
+            # Unfortunately, anything can happen when calling str() or
+            # repr() on a random object.
+            displayed_value = default_stringifier(value) \
+                            + " (!! %s error !!)" % iinfo.display_type
+            ui_log.exception('stringifier failed')
 
         if iinfo.show_detail:
             marker = iinfo.access_level[:3]

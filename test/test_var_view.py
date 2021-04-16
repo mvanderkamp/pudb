@@ -12,10 +12,12 @@ from pudb.py3compat import (
 from pudb.var_view import (
     BasicValueWalker,
     FrameVarInfo,
+    InspectInfo,
+    STRINGIFIERS,
     ValueWalker,
+    get_stringifier,
     ui_log,
 )
-from pudb.var_view import FrameVarInfo, BasicValueWalker, ui_log
 
 
 class A:
@@ -27,8 +29,6 @@ class A2(object):
 
 
 def test_get_stringifier():
-    from pudb.var_view import InspectInfo, get_stringifier
-
     try:
         import numpy as np
     except ImportError:
@@ -40,7 +40,7 @@ def test_get_stringifier():
             A, A2, A(), A2(), u"lól".encode('utf8'), u"lól",
             1233123, [u"lól".encode('utf8'), u"lól"],
             ] + numpy_values:
-        for display_type in ["type", "repr", "str", "id"]:
+        for display_type in STRINGIFIERS:
             iinfo = InspectInfo()
             iinfo.display_type = display_type
 

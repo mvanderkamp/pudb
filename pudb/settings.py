@@ -107,7 +107,7 @@ def load_config():
 
     conf_dict.setdefault("current_stack_frame", "top")
 
-    conf_dict.setdefault("stringifier", "type")
+    conf_dict.setdefault("stringifier", "default")
 
     conf_dict.setdefault("custom_theme", "")
     conf_dict.setdefault("custom_stringifier", "")
@@ -342,7 +342,7 @@ def edit_config(ui, conf_dict):
 
     # {{{ stringifier
 
-    stringifier_opts = ["type", "str", "repr", "id"]
+    stringifier_opts = ["default", "type", "str", "repr", "id"]
     known_stringifier = conf_dict["stringifier"] in stringifier_opts
     stringifier_rb_group = []
     stringifier_edit = urwid.Edit(edit_text=conf_dict["custom_stringifier"])
