@@ -459,8 +459,12 @@ def default_stringifier(value):
         if isinstance(result, string_types):
             return text_type(result)
 
-    elif type(value) in [set, frozenset, list, tuple, dict]:
-        return text_type("%s (%s)") % (type(value).__name__, len(value))
+    elif hasattr(value, '__len__'):
+        try:
+            return text_type("%s (%s)") % (type(value).__name__, len(value))
+        except Exception:
+            # Not a problem, showing the length is an optional bonus.
+            pass
 
     return text_type(type(value).__name__)
 
