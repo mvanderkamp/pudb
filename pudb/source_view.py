@@ -254,6 +254,7 @@ else:
         t.Literal: "literal",
         t.Name.Exception: "exception",
         t.Name.Function: "name",
+        t.Name.Function.Magic: "magic",
         t.Name.Class: "name",
         t.Name.Builtin: "builtin",
         t.Name.Builtin.Pseudo: "pseudo",
@@ -317,10 +318,10 @@ else:
                     ttype = ATTR_TRANSLATE[ttype][s]
 
             # Translate dunder method tokens
-            if ttype == (
-                    t.Name.Function
-                    and s.startswith("__") and s.endswith("__")
-                    ):
+            # NOTE: leaves "Magic" name tokens alone
+            if (ttype == t.Name.Function
+                    and s.startswith("__")
+                    and s.endswith("__")):
                 ttype = t.Token.Dunder
 
             while ttype not in ATTR_MAP:

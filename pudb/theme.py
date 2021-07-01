@@ -69,16 +69,17 @@ def get_palette(may_use_fancy_formats, theme="classic"):
     # ------------------------------------------------------------------------------
 
     inheritance_map = (
-        # Style       Inherits from
-        # ----------  ----------
-        ("namespace", "keyword"),
-        ("operator",  "source"),
-        ("argument",  "source"),
-        ("builtin",   "source"),
-        ("pseudo",    "source"),
-        ("dunder",    "name"),
-        ("exception", "source"),
-        ("keyword2",  "keyword")
+        # Style                 Inherits from
+        # ----------            ----------
+        ("namespace",           "keyword"),
+        ("operator",            "source"),
+        ("argument",            "source"),
+        ("builtin",             "source"),
+        ("pseudo",              "source"),
+        ("dunder",              "name"),
+        ("magic",               "dunder"),
+        ("exception",           "source"),
+        ("keyword2",            "keyword"),
     )
 
     palette_dict = {
@@ -93,6 +94,7 @@ def get_palette(may_use_fancy_formats, theme="classic"):
         "builtin":   None,
         "pseudo":    None,
         "dunder":    None,
+        "magic":     None,
         "exception": None,
         "keyword2":  None,
 
