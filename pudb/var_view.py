@@ -515,6 +515,10 @@ def get_stringifier(iinfo):
             if not custom_stringifier_dict:  # Only execfile once
                 from os.path import expanduser
                 execfile(expanduser(iinfo.display_type), custom_stringifier_dict)
+        except IOError:
+            ui_log.error("Unable to locate custom stringifier file {!r}"
+                         .format(iinfo.display_type))
+            return error_stringifier
         except Exception:
             ui_log.exception("Error when importing custom stringifier")
             return error_stringifier

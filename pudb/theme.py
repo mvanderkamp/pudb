@@ -25,6 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+from pudb.lowlevel import ui_log
 
 THEMES = [
         "classic",
@@ -1008,11 +1009,11 @@ def get_palette(may_use_fancy_formats, theme="classic"):
 
             from os.path import expanduser, expandvars
             execfile(expanduser(expandvars(theme)), symbols)
+        except IOError:
+            ui_log.error("Unable to locate custom theme file {!r}"
+                         .format(theme))
         except Exception:
-            print("Error when importing theme:")
-            from traceback import print_exc
-            print_exc()
-            raw_input("Hit enter:")
+            ui_log.exception("Error when importing theme:")
 
     # Apply style inheritance
     for child, parent in inheritance_map:
