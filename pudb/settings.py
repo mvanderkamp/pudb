@@ -277,7 +277,7 @@ def edit_config(ui, conf_dict):
     shells = ["internal", "classic", "ipython", "bpython", "ptpython", "ptipython"]
     known_shell = conf_dict["shell"] in shells
     shell_edit = urwid.Edit(edit_text=conf_dict["custom_shell"])
-    shell_edit_list_item = urwid.AttrMap(shell_edit, "value")
+    shell_edit_list_item = urwid.AttrMap(shell_edit, "input", "focused input")
 
     shell_rb_group = []
     shell_rbs = [
@@ -307,7 +307,7 @@ def edit_config(ui, conf_dict):
 
     theme_rb_group = []
     theme_edit = urwid.Edit(edit_text=conf_dict["custom_theme"])
-    theme_edit_list_item = urwid.AttrMap(theme_edit, "value")
+    theme_edit_list_item = urwid.AttrMap(theme_edit, "input", "focused input")
     theme_rbs = [
             urwid.RadioButton(theme_rb_group, name,
                 conf_dict["theme"] == name, on_state_change=_update_config,
@@ -347,12 +347,14 @@ def edit_config(ui, conf_dict):
     known_stringifier = conf_dict["stringifier"] in stringifier_opts
     stringifier_rb_group = []
     stringifier_edit = urwid.Edit(edit_text=conf_dict["custom_stringifier"])
-    stringifier_info = urwid.Text("This is the default function that will be "
-        "called on variables in the variables list.  Note that you can change "
-        "this on a per-variable basis by selecting a variable and hitting Enter "
-        "or by typing t/s/r.  Note that str and repr will be slower than type "
-        "and have the potential to crash PuDB.\n")
-    stringifier_edit_list_item = urwid.AttrMap(stringifier_edit, "value")
+    stringifier_info = urwid.Text(
+        "This is the default function that will be called on variables in the "
+        "variables list. You can also change this on a per-variable basis by "
+        "selecting a variable and typing 'e' to edit the variable's display "
+        "settings, or by typing one of d/t/r/s/i/c. Note that str and repr will "
+        "be slower than the default, type, or id stringifiers.\n")
+    stringifier_edit_list_item = urwid.AttrMap(stringifier_edit,
+                                               "input", "focused input")
     stringifier_rbs = [
             urwid.RadioButton(stringifier_rb_group, name,
                 conf_dict["stringifier"] == name,
