@@ -39,6 +39,7 @@ THEMES = [
     "agr-256",
     "monokai",
     "monokai-256",
+    "mono",
 ]
 
 
@@ -294,7 +295,7 @@ def get_palette(may_use_fancy_formats: bool, theme: str = "classic") -> list:
 
     if theme == "classic":
         # {{{ classic theme
-        palette_dict = {
+        palette_dict.update({
             # {{{ ui
             "header": ("black", "light gray", "standout"),
 
@@ -434,8 +435,8 @@ def get_palette(may_use_fancy_formats: bool, theme: str = "classic") -> list:
             "focused current frame location": ("light cyan", "dark green"),
 
             # }}}
+        })
         # }}}
-        }
     elif theme == "vim":
         # {{{ vim theme
 
@@ -1280,7 +1281,17 @@ def get_palette(may_use_fancy_formats: bool, theme: str = "classic") -> list:
             # }}}
         })
         # }}}
-
+    elif theme == "mono":
+        # {{{ mono
+        palette_dict = {
+            "background": ("standout",),
+            "selectable": (),
+            "focused selectable": ("underline",),
+            "warning": ("bold",),
+            "highlighted": ("bold",),
+            "hotkey": ("underline, standout",),
+        }
+        # }}}
     else:
         # {{{ custom
         try:
