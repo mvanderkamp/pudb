@@ -339,7 +339,7 @@ class VariableWidget(urwid.FlowWidget):
 
                     + text_width(var_label)
 
-                    + 2  # for ": "
+                    + 1  # for ":"
                     )
 
             _attr = [(apfx+"label", labellen), (apfx+"value", totallen - labellen)]
@@ -369,8 +369,8 @@ class VariableWidget(urwid.FlowWidget):
                     text = [self.prefix + self.var_label + ": " + self.value_str]
 
                     attr = [[
-                            (apfx+"label", lprefix+text_width(self.var_label)+2),
-                            (apfx+"value", text_width(self.value_str)),
+                            (apfx+"label", lprefix+text_width(self.var_label)+1),
+                            (apfx+"value", text_width(self.value_str)+1),
                             ]]
             else:
                 text = [self.prefix + self.value_str]
