@@ -94,7 +94,7 @@ BASE_STYLES = {
 # Map styles to their parent. If a style is not defined, use the parent style
 # recursively.
 # focused > highlighted > current > breakpoint line/disabled breakpoint
-CLEAN_INHERITANCE_MAP = {
+INHERITANCE_MAP = {
     # {{{ general ui
     "label": "background",
     "header": "background",
@@ -234,10 +234,10 @@ CLEAN_INHERITANCE_MAP = {
     "backtick":     "string",
     # }}}
 }
-INHERITANCE_MAP = CLEAN_INHERITANCE_MAP.copy()
 
 
-def get_style(palette_dict: dict, style_name: str):
+def get_style(palette_dict: dict, style_name: str,
+              inheritance_overrides: dict) -> dict:
     """
     Recursively search up the style hierarchy for the first style which has
     been defined, and add it to the palette_dict under the given style_name.
@@ -250,14 +250,16 @@ def get_style(palette_dict: dict, style_name: str):
             palette_dict[style_name] = style
         return style
     except KeyError:
-        parent_name = INHERITANCE_MAP[style_name]
-        style = replace(get_style(palette_dict, parent_name), name=style_name)
+        parent_name = inheritance_overrides.get(
+            style_name,
+            INHERITANCE_MAP[style_name],
+        )
+        style = replace(
+            get_style(palette_dict, parent_name, inheritance_overrides),
+            name=style_name
+        )
         palette_dict[style_name] = style
         return style
-
-
-def link(child: str, parent: str):
-    INHERITANCE_MAP[child] = parent
 
 # }}}
 
@@ -267,8 +269,7 @@ def get_palette(may_use_fancy_formats: bool, theme: str = "classic") -> list:
     Load the requested theme and return a list containing all palette entries
     needed to highlight the debugger UI, including syntax highlighting.
     """
-    # undo previous link() calls
-    INHERITANCE_MAP.update(CLEAN_INHERITANCE_MAP)
+    inheritance_overrides = {}
 
     if may_use_fancy_formats:
         def add_setting(color, setting):
@@ -276,6 +277,9 @@ def get_palette(may_use_fancy_formats: bool, theme: str = "classic") -> list:
     else:
         def add_setting(color, setting):
             return color
+
+    def link(child: str, parent: str):
+        inheritance_overrides[child] = parent
 
     # {{{ themes
 
@@ -867,7 +871,7 @@ def get_palette(may_use_fancy_formats: bool, theme: str = "classic") -> list:
 
     # Apply style inheritance
     for style_name in set(INHERITANCE_MAP.keys()).union(BASE_STYLES.keys()):
-        get_style(palette_dict, style_name)
+        get_style(palette_dict, style_name, inheritance_overrides)
 
     palette_list = [
         astuple(entry)
