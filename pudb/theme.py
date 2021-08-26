@@ -25,10 +25,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-from dataclasses import dataclass, astuple, replace
-from typing import Optional
+from collections import namedtuple
 from pudb.lowlevel import ui_log
-from pudb.py3compat import execfile, raw_input
+from pudb.py3compat import execfile
 
 THEMES = [
     "classic",
@@ -43,23 +42,37 @@ THEMES = [
 ]
 
 
-@dataclass
-class PaletteEntry:
-    name: str
-    foreground: str = "default"
-    background: str = "default"
-    mono: Optional[str] = None
-    foreground_high: Optional[str] = None
-    background_high: Optional[str] = None
+class PaletteEntry(namedtuple(
+        'PaletteEntry',
+        [
+            'name',
+            'foreground',
+            'background',
+            'mono',
+            'foreground_high',
+            'background_high',
+        ])):
 
     def handle_256_colors(self):
+        kwargs = {}
         if self.foreground.lower().strip().startswith("h"):
-            self.foreground_high = self.foreground
-            self.foreground = "default"
+            kwargs['foreground_high'] = self.foreground
+            kwargs['foreground'] = "default"
         if self.background.lower().strip().startswith("h"):
-            self.background_high = self.background
-            self.background = "default"
+            kwargs['background_high'] = self.background
+            kwargs['background'] = "default"
+        if kwargs:
+            return self._replace(**kwargs)
+        return self
 
+
+PaletteEntry.__new__.__defaults__ = (
+    "default",
+    "default",
+    None,
+    None,
+    None,
+)
 
 # ------------------------------------------------------------------------------
 # Reference for some palette items:
@@ -236,17 +249,20 @@ INHERITANCE_MAP = {
 }
 
 
-def get_style(palette_dict: dict, style_name: str,
-              inheritance_overrides: dict) -> dict:
+def get_style(palette_dict, style_name, inheritance_overrides):
     """
     Recursively search up the style hierarchy for the first style which has
     been defined, and add it to the palette_dict under the given style_name.
+
+    :param dict palette_dict:
+    :param str style_name:
+    :param dict inheritance_overrides:
+    :rtype: PaletteEntry
     """
     try:
         style = palette_dict[style_name]
         if not isinstance(style, PaletteEntry):
-            style = PaletteEntry(style_name, *style)
-            style.handle_256_colors()
+            style = PaletteEntry(style_name, *style).handle_256_colors()
             palette_dict[style_name] = style
         return style
     except KeyError:
@@ -254,31 +270,40 @@ def get_style(palette_dict: dict, style_name: str,
             style_name,
             INHERITANCE_MAP[style_name],
         )
-        style = replace(
-            get_style(palette_dict, parent_name, inheritance_overrides),
-            name=style_name
-        )
+        style = get_style(
+            palette_dict,
+            parent_name,
+            inheritance_overrides,
+        )._replace(name=style_name)
         palette_dict[style_name] = style
         return style
 
 # }}}
 
 
-def get_palette(may_use_fancy_formats: bool, theme: str = "classic") -> list:
+def get_palette(may_use_fancy_formats, theme="classic"):
     """
     Load the requested theme and return a list containing all palette entries
     needed to highlight the debugger UI, including syntax highlighting.
+
+    :param bool may_use_fancy_formats:
+    :param str theme:
+    :rtype: dict
     """
     inheritance_overrides = {}
 
     if may_use_fancy_formats:
         def add_setting(color, setting):
-            return f"{color}, {setting}"
+            return "{}, {}".format(color, setting)
     else:
         def add_setting(color, setting):
             return color
 
-    def link(child: str, parent: str):
+    def link(child, parent):
+        """
+        :param str child:
+        :param str parent:
+        """
         inheritance_overrides[child] = parent
 
     # {{{ themes
@@ -874,7 +899,7 @@ def get_palette(may_use_fancy_formats: bool, theme: str = "classic") -> list:
         get_style(palette_dict, style_name, inheritance_overrides)
 
     palette_list = [
-        astuple(entry)
+        entry
         for entry in palette_dict.values()
         if isinstance(entry, PaletteEntry)
     ]

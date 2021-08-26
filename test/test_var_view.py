@@ -206,12 +206,12 @@ class BaseValueWalkerTestCase(unittest.TestCase):
         # Build out list of extected view contents according to container type.
         expected = [(label, self.value_string(container))]
         if isinstance(container, PudbMapping):
-            expected.extend([(f"[{repr(key)}]", repr(container[key]))
+            expected.extend([("[{}]".format(repr(key)), repr(container[key]))
                              for key in container.keys()]
                             or [self.EMPTY_ITEM])
             self.class_counts["mappings"] += 1
         elif isinstance(container, PudbSequence):
-            expected.extend([(f"[{repr(index)}]", repr(entry))
+            expected.extend([("[{}]".format(repr(index)), repr(entry))
                              for index, entry in enumerate(container)]
                             or [self.EMPTY_ITEM])
             self.class_counts["sequences"] += 1
