@@ -28,6 +28,7 @@ THE SOFTWARE.
 from collections import namedtuple
 from pudb.lowlevel import ui_log
 from pudb.py3compat import execfile
+from urwid import AttrSpec
 
 THEMES = [
     "classic",
@@ -54,15 +55,17 @@ class PaletteEntry(namedtuple(
         ])):
 
     def handle_256_colors(self):
-        kwargs = {}
-        if self.foreground.lower().strip().startswith("h"):
-            kwargs['foreground_high'] = self.foreground
-            kwargs['foreground'] = "default"
-        if self.background.lower().strip().startswith("h"):
-            kwargs['background_high'] = self.background
-            kwargs['background'] = "default"
-        if kwargs:
-            return self._replace(**kwargs)
+        fg_color = self.foreground.lower().strip()
+        bg_color = self.background.lower().strip()
+        if fg_color.startswith('h') or bg_color.startswith('h'):
+            # Annoying urwid bug, fixed in python3
+            attr = AttrSpec(fg_color, bg_color, colors=256)
+            return self._replace(
+                foreground="default",
+                background="default",
+                foreground_high=attr.foreground,
+                background_high=attr.background,
+            )
         return self
 
 
