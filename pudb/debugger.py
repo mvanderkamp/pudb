@@ -34,6 +34,7 @@ import bdb
 import gc
 import os
 import sys
+import threading
 
 from itertools import count
 from functools import partial
@@ -45,6 +46,8 @@ from pudb.py3compat import PY3, raw_input, execfile
 
 CONFIG = load_config()
 save_config(CONFIG)
+
+THREADING_RLOCK = threading.RLock()
 
 HELP_HEADER = r"""
 Key Assignments: Use Arrow Down/Up or Page Down/Up to scroll.
@@ -2326,6 +2329,10 @@ class DebuggerUI(FrameVarInfoKeeper):
     # {{{ interaction
 
     def event_loop(self, toplevel=None):
+        with THREADING_RLOCK:
+            return self._event_loop(toplevel)
+
+    def _event_loop(self, toplevel):
         prev_quit_loop = self.quit_event_loop
 
         try:
