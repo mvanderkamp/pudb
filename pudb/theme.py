@@ -126,6 +126,7 @@ INHERITANCE_MAP = {
     "fixed value": "label",
 
     "warning": "highlighted",
+    "header warning": "warning",
     "search box": "focused input",
     "search not found": "warning",
     # }}}
@@ -393,6 +394,7 @@ def get_palette(may_use_fancy_formats, theme="classic"):
             "input": ("black", "dark cyan"),
             "focused input": ("black", "light cyan"),
             "warning": (add_setting("dark red", "bold"), "white"),
+            "header warning": (add_setting("dark red", "bold"), "light gray"),
             # }}}
             # {{{ source view
             "source": ("black", "white"),
@@ -454,6 +456,7 @@ def get_palette(may_use_fancy_formats, theme="classic"):
             "header": ("dark blue", "light gray"),
             "dialog title": (add_setting("white", "bold"), "black"),
             "warning": (add_setting("light red", "bold"), "black"),
+            "warning": (add_setting("light red", "bold"), "light gray"),
             # }}}
             # {{{ source view
             "source": ("white", "black"),
@@ -506,6 +509,7 @@ def get_palette(may_use_fancy_formats, theme="classic"):
             "focused sidebar": (add_setting("black", "bold"), "light gray"),
             "group head": (add_setting("black", "bold"), "light gray"),
             "warning": (add_setting("light red", "bold"), "black"),
+            "header warning": (add_setting("light red", "bold"), "light gray"),
             "dialog title": ("black", "dark green"),
             "fixed value": ("white", "dark gray"),
             # }}}
@@ -564,6 +568,7 @@ def get_palette(may_use_fancy_formats, theme="classic"):
             # {{{ general ui
             "dialog title": (add_setting("white", "bold"), "dark cyan"),
             "warning": (add_setting("light red", "bold"), "white"),
+            "header warning": (add_setting("light red", "bold"), "light gray"),
             "focused sidebar": ("dark red", "light gray"),
             "group head": (add_setting("yellow", "bold"), "light gray"),
             # }}}
