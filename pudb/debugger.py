@@ -2326,7 +2326,7 @@ class DebuggerUI(FrameVarInfoKeeper):
 
     # }}}
 
-    # {{{ interaction
+    # {{{ event loop
 
     def event_loop(self, toplevel=None):
         with THREADING_RLOCK:
