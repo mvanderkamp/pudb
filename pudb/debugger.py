@@ -41,7 +41,7 @@ from functools import partial
 from types import TracebackType
 
 from pudb.lowlevel import decode_lines, ui_log
-from pudb.settings import load_config, save_config
+from pudb.settings import load_config, save_config, get_save_config_path
 from pudb.py3compat import PY3, raw_input, execfile
 
 CONFIG = load_config()
@@ -776,9 +776,6 @@ class DebuggerUI(FrameVarInfoKeeper):
         self.source_attr = urwid.AttrMap(self.source_sigwrap, "source")
         self.source_hscroll_start = 0
 
-        self.cmdline_history = []
-        self.cmdline_history_position = -1
-
         self.cmdline_contents = urwid.SimpleFocusListWalker([])
         self.cmdline_list = urwid.ListBox(self.cmdline_contents)
         self.cmdline_edit = urwid.Edit([
@@ -790,6 +787,20 @@ class DebuggerUI(FrameVarInfoKeeper):
 
         def clear_cmdline_history(btn):
             del self.cmdline_contents[:]
+
+        def initialize_cmdline_history(path):
+            try:
+                # Load global history if present
+                return open(path, "r").read().splitlines()
+            except IOError:
+                return []
+
+        self.cmdline_history_path = os.path.join(get_save_config_path(),
+                                                 "internal-cmdline-history.txt")
+
+        self.cmdline_history = initialize_cmdline_history(self.cmdline_history_path)
+        self.cmdline_history_position = -1
+        self.cmdline_history_limit = 5000
 
         self.cmdline_edit_bar = urwid.Columns([
                 self.cmdline_edit_sigwrap,
@@ -1680,6 +1691,9 @@ class DebuggerUI(FrameVarInfoKeeper):
 
             if not self.cmdline_history or cmd != self.cmdline_history[-1]:
                 self.cmdline_history.append(cmd)
+                # Limit history size
+                if len(self.cmdline_history) > self.cmdline_history_limit:
+                    del self.cmdline_history[0]
 
             self.cmdline_history_position = -1
 
@@ -1993,6 +2007,8 @@ class DebuggerUI(FrameVarInfoKeeper):
                 self.rhs_col.set_focus(self.rhs_col.widget_list[subself.idx])
 
         def quit(w, size, key):
+            with open(self.cmdline_history_path, "w") as history:
+                history.write("\n".join((self.cmdline_history)))
             self.debugger.set_quit()
             end()
 
