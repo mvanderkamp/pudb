@@ -118,8 +118,14 @@ def _have_debugger():
 
 
 import signal  # noqa
-DEFAULT_SIGNAL = signal.SIGINT
+signame = load_config()["default_signal"]
+try:
+    DEFAULT_SIGNAL = getattr(signal, signame)
+except AttributeError:
+    print("Invalid signal name '{}', falling back to 'SIGINT'".format(signame))
+    DEFAULT_SIGNAL = signal.SIGINT
 del signal
+del signame
 
 
 def runmodule(*args, **kwargs):
