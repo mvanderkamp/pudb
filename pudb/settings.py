@@ -109,6 +109,7 @@ def load_config():
     conf_dict.setdefault("current_stack_frame", "top")
 
     conf_dict.setdefault("stringifier", "default")
+    conf_dict.setdefault("key_stringifier", "default")
 
     conf_dict.setdefault("custom_theme", "")
     conf_dict.setdefault("custom_stringifier", "")
@@ -238,6 +239,11 @@ def edit_config(ui, conf_dict):
                     return
 
                 conf_dict.update(stringifier=newvalue)
+                _update_stringifier()
+
+        elif option == "key_stringifier":
+            if new_state:
+                conf_dict.update(key_stringifier=newvalue)
                 _update_stringifier()
 
         elif option == "default_variables_access_level":
@@ -380,6 +386,27 @@ def edit_config(ui, conf_dict):
 
     # }}}
 
+    # {{{ key_stringifier
+
+    key_stringifier_opts = ["str", "repr", "id"]
+    known_stringifier = conf_dict["key_stringifier"] in stringifier_opts
+    key_stringifier_rb_group = []
+    key_stringifier_info = urwid.Text(
+        "This is the default function that will be called on the keys for "
+        "mapping-type containers in the variables list. You can also change "
+        "this on a per-variable basis by selecting a variable and typing 'e' "
+        "to edit the variable's display settings.\n"
+    )
+    key_stringifier_rbs = [
+        urwid.RadioButton(key_stringifier_rb_group, name,
+                          conf_dict["key_stringifier"] == name,
+                          on_state_change=_update_config,
+                          user_data=("key_stringifier", name))
+        for name in key_stringifier_opts
+    ]
+
+    # }}}
+
     # {{{ variables access level
 
     default_variables_access_level_opts = ["public", "private", "all"]
@@ -455,6 +482,10 @@ def edit_config(ui, conf_dict):
             + [urwid.AttrMap(urwid.Text("\nVariable Stringifier:\n"), "group head")]
             + [stringifier_info]
             + stringifier_rbs
+
+        + [urwid.AttrMap(urwid.Text("\nMapping Key Stringifier:\n"), "group head")]
+            + [key_stringifier_info]
+            + key_stringifier_rbs
 
             + [urwid.AttrMap(urwid.Text("\nVariables Attribute Visibility:\n"),
                 "group head")]

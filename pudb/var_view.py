@@ -86,7 +86,7 @@ class PudbCollection(_PudbCollection):
         return NotImplemented
 
     @classmethod
-    def entries(cls, collection, label):
+    def entries(cls, collection, label, iinfo):
         """
         :yield: ``(label, entry, id_path_ext)`` tuples for each entry in the
         collection.
@@ -120,7 +120,7 @@ class PudbSequence(_PudbSequence):
         return NotImplemented
 
     @classmethod
-    def entries(cls, sequence, label):
+    def entries(cls, sequence, label, iinfo):
         """
         :yield: ``(label, entry, id_path_ext)`` tuples for each entry in the
         sequence.
@@ -155,14 +155,14 @@ class PudbMapping(_PudbMapping):
         return NotImplemented
 
     @classmethod
-    def _safe_key_repr(cls, key):
+    def _safe_key_repr(cls, key, iinfo):
         try:
-            return repr(key)
+            return __builtins__[iinfo.key_display_type](key)
         except Exception:
             return "!! repr error on key with id: {:#x} !!".format(id(key))
 
     @classmethod
-    def entries(cls, mapping, label):
+    def entries(cls, mapping, label, iinfo):
         """
         :yield: ``(label, entry, id_path_ext)`` tuples for each entry in the
         mapping.
@@ -170,7 +170,7 @@ class PudbMapping(_PudbMapping):
         assert isinstance(mapping, cls)
         try:
             for key in mapping.keys():
-                key_repr = cls._safe_key_repr(key)
+                key_repr = cls._safe_key_repr(key, iinfo)
                 yield (key_repr, mapping[key], "[{}]".format(key_repr))
         except (AttributeError, TypeError):
             ui_log.error("Object '%r' appears to be a mapping, but does "
@@ -215,6 +215,7 @@ class InspectInfo(object):
 
         self.show_detail = False
         self.display_type = CONFIG["stringifier"]
+        self.key_display_type = CONFIG["key_stringifier"]
         self.highlighted = False
         self.repeated_at_top = False
         self.access_level = CONFIG["default_variables_access_level"]
@@ -572,7 +573,7 @@ class ValueWalker:
             return True
         return False
 
-    def walk_container(self, parent, label, value, id_path=None):
+    def walk_container(self, parent, label, value, id_path=None, iinfo=None):
         """
         :param VariableWidget parent:
         :param str label:
@@ -588,7 +589,7 @@ class ValueWalker:
 
         is_empty = True
         for count, (entry_label, entry, id_path_ext) in enumerate(
-                container_cls.entries(value, label)):
+                container_cls.entries(value, label, iinfo)):
             is_empty = False
             if count > 0 and count % 10 == 0:
                 try:
@@ -664,7 +665,7 @@ class ValueWalker:
 
         if iinfo.show_detail:
             if isinstance(value, CONTAINER_CLASSES):
-                self.walk_container(new_parent_item, label, value, id_path)
+                self.walk_container(new_parent_item, label, value, id_path, iinfo)
             self.walk_attributes(new_parent_item, label, value, id_path, iinfo)
 
 

@@ -36,7 +36,7 @@ import os
 import sys
 import threading
 
-from itertools import count
+from itertools import count, chain
 from functools import partial
 from types import TracebackType
 
@@ -1006,6 +1006,23 @@ class DebuggerUI(FrameVarInfoKeeper):
                     rb_grp_show, "Show custom (set in prefs)",
                     iinfo.display_type == CONFIG["custom_stringifier"])
 
+            rb_grp_key_show = []
+            rb_key_show_repr = urwid.RadioButton(
+                rb_grp_key_show,
+                "For mapping keys, show repr()",
+                iinfo.key_display_type == "repr",
+            )
+            rb_key_show_str = urwid.RadioButton(
+                rb_grp_key_show,
+                "For mapping keys, show str()",
+                iinfo.key_display_type == "str",
+            )
+            rb_key_show_id = urwid.RadioButton(
+                rb_grp_key_show,
+                "For mapping keys, show id()",
+                iinfo.key_display_type == "id",
+            )
+
             rb_grp_access = []
             rb_access_public = urwid.RadioButton(rb_grp_access, "Public members",
                     iinfo.access_level == "public")
@@ -1024,17 +1041,22 @@ class DebuggerUI(FrameVarInfoKeeper):
             show_methods_checkbox = urwid.CheckBox(
                     "Show methods", iinfo.show_methods)
 
-            lb = urwid.ListBox(urwid.SimpleListWalker(
-                id_segment
-                + rb_grp_show + [urwid.Text("")]
-                + rb_grp_access + [urwid.Text("")]
-                + [
+            lb = urwid.ListBox(urwid.SimpleListWalker(list(chain(
+                id_segment,
+                rb_grp_show,
+                [urwid.Text("")],
+                rb_grp_key_show,
+                [urwid.Text("")],
+                rb_grp_access,
+                [urwid.Text("")],
+                [
                     wrap_checkbox,
                     expanded_checkbox,
                     highlighted_checkbox,
                     repeated_at_top_checkbox,
                     show_methods_checkbox,
-                ]))
+                ],
+            ))))
 
             result = self.dialog(lb, buttons, title=title)
 
@@ -1057,6 +1079,13 @@ class DebuggerUI(FrameVarInfoKeeper):
                     iinfo.display_type = "id"
                 elif rb_show_custom.get_state():
                     iinfo.display_type = CONFIG["custom_stringifier"]
+
+                if rb_key_show_repr.get_state():
+                    iinfo.key_display_type = "repr"
+                if rb_key_show_str.get_state():
+                    iinfo.key_display_type = "str"
+                if rb_key_show_id.get_state():
+                    iinfo.key_display_type = "id"
 
                 if rb_access_public.get_state():
                     iinfo.access_level = "public"
