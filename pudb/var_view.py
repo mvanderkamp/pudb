@@ -71,8 +71,6 @@ from pudb.ui_tools import text_width
 # {{{ abstract base classes for containers
 
 class PudbCollection(_PudbCollection):
-    SURROUNDS = ("{", "}")
-
     @classmethod
     def __subclasshook__(cls, c):
         if cls is PudbCollection:
@@ -105,8 +103,6 @@ class PudbCollection(_PudbCollection):
 
 
 class PudbSequence(_PudbSequence):
-    SURROUNDS = ("[", "]")
-
     @classmethod
     def __subclasshook__(cls, c):
         if cls is PudbSequence:
@@ -139,8 +135,6 @@ class PudbSequence(_PudbSequence):
 
 
 class PudbMapping(_PudbMapping):
-    SURROUNDS = ("{", "}")
-
     @classmethod
     def __subclasshook__(cls, c):
         if cls is PudbMapping:
