@@ -56,12 +56,14 @@ try:
 except ImportError:
     PANDAS_TYPES = ()
 
-from pudb.py3compat import PY3, execfile, raw_input, xrange, \
-        integer_types, string_types, text_type
-if PY3:
-    ELLIPSIS = '…'
-else:
-    ELLIPSIS = unicode('…', 'utf-8')  # noqa: F821
+from pudb.py3compat import (
+    PY3,
+    execfile,
+    integer_types,
+    string_types,
+    text_type,
+    xrange,
+)
 
 from pudb.ui_tools import text_width
 
@@ -380,24 +382,9 @@ class VariableWidget(urwid.FlowWidget):
             attr = [[(apfx+"label", lprefix + text_width(self.var_label)), ]]
 
         # Ellipses to show text was cut off
-        #encoding = urwid.util.detected_encoding
-
-        if False:  # encoding[:3] == "UTF":
-            # Unicode is supported, use single character ellipsis
-            for i in xrange(len(text)):
-                if len(text[i]) > maxcol:
-                    text[i] = (unicode(text[i][:maxcol-1])  # noqa: F821
-                            + ELLIPSIS + unicode(text[i][maxcol:]))  # noqa: F821
-                    # XXX: This doesn't work.  It just gives a ?
-                    # Strangely, the following does work (it gives the …
-                    # three characters from the right):
-                    #
-                    # text[i] = (unicode(text[i][:maxcol-3])
-                    # + unicode(u'…')) + unicode(text[i][maxcol-2:])
-        else:
-            for i in xrange(len(text)):
-                if text_width(text[i]) > maxcol:
-                    text[i] = text[i][:maxcol-3] + "..."
+        for i in xrange(len(text)):
+            if text_width(text[i]) > maxcol:
+                text[i] = text[i][:maxcol-3] + "..."
 
         return make_canvas(text, attr, maxcol, apfx+"value")
 
